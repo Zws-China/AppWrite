@@ -5,15 +5,17 @@ export default async ({ req, res, log, error }) => {
     const { userId, fileId, url } = JSON.parse(req.body || "{}");
 
     if (!userId || !fileId || !url) {
-      return res.json({ error: "Missing parameters" }, 400);
+      return res.status(400).json({ error: "Missing parameters" });
     }
 
+    // 初始化 Appwrite 客户端
     const client = new Client()
       .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT)
       .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID);
 
     const databases = new Databases(client);
 
+    // 创建录音记录
     const result = await databases.createDocument(
       process.env.DATABASE_ID,
       process.env.COLLECTION_ID,
@@ -21,9 +23,12 @@ export default async ({ req, res, log, error }) => {
       { userId, fileId, url }
     );
 
-    return res.json({ message: "录音信息已保存", document: result });
+    return res.json({
+      message: "录音信息已保存",
+      document: result,
+    });
   } catch (err) {
     error(err);
-    return res.json({ error: err.message }, 500 });
+    return res.status(500).json({ error: err.message });
   }
 };
